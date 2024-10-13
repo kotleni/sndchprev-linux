@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.15)
-project(sounddir)
+project(sndchprev)
 
 include(cmake/FindPipeWire.cmake)
 include(cmake/FindX11.cmake)
