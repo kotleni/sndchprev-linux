@@ -60,8 +60,8 @@ bool is_right_often()
 void add_to_history(bool is_right, float channels[CHANNELS_COUNT])
 {
     history[history_index].is_right = is_right;
-    history[history_index].channels[0] = channels[0];
-    history[history_index].channels[1] = channels[1];
+    for(int i = 0; i < CHANNELS_COUNT; i++)
+        history[history_index].channels[i] = channels[i];
     history_index++;
     if(history_index >= MAX_HISTORY_ITEMS) history_index = 0;
 }
