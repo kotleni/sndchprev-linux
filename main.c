@@ -50,7 +50,7 @@ unsigned long _RGB(int r,int g, int b)
 
 void draw_direction_bar()
 {
-    float target = lerp(prev_direction_value, direction_value, 0.35);
+    float target = lerp(prev_direction_value, direction_value, 0.7);
     float portion = target * DIRECTON_BAR_VALUE_SCALE;
     float x = portion * (float)window_width;
     float xx = ((float) window_width / 2) + x;
@@ -104,6 +104,9 @@ static void on_process(void *userdata)
 
         direction_value = 0.0;
 
+        #define CHANNELS_COUNT 2
+        float channels[CHANNELS_COUNT];
+
         /* move cursor up */
         if (data->move)
                 fprintf(stdout, "%c[%dA", 0x1b, n_channels + 1);
@@ -117,10 +120,17 @@ static void on_process(void *userdata)
 
                 fprintf(stdout, "channel %d: |%*s%*s| peak:%f\n",
                                 c, peak+1, "*", 40 - peak, "", max);
-            // TODO: Refactor
-            if(direction_value == 0.0) direction_value += -max;
-            else direction_value += max;
+
+            channels[c] = max;
         }
+
+        // Match loudest channel
+        if(channels[0] < channels[1]) { // RIGHT>
+            direction_value = channels[1];
+        } else { // LEFT>
+            direction_value = -channels[0];
+        }
+
         data->move = true;
         fflush(stdout);
 
