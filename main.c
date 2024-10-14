@@ -86,7 +86,7 @@ unsigned long _RGB(int r,int g, int b)
 
 void draw_direction_bar()
 {
-    float target = lerp(prev_direction_value, direction_value, 0.7);
+    float target = lerp(prev_direction_value, direction_value, 0.35);
     float portion = target * DIRECTON_BAR_VALUE_SCALE;
     float x = portion * (float)window_width;
     float xx = ((float) window_width / 2) + x;
