@@ -13,8 +13,8 @@
 #include <spa/param/audio/format-utils.h>
 #include <pipewire/pipewire.h>
 
-#define DIRECTION_BAR_WIDTH 32
-#define DIRECTION_BAR_HEIGHT 32
+#define DIRECTION_BAR_WIDTH 16
+#define DIRECTION_BAR_HEIGHT 16
 #define DIRECTON_BAR_VALUE_SCALE 1.0
 
 float direction_value = 0.2;
