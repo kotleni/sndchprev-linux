@@ -30,6 +30,42 @@ int window_width, window_height;
 bool is_running = false;
 XEvent x11_event;
 
+
+#define CHANNELS_COUNT 2
+float channels[CHANNELS_COUNT];
+
+typedef struct {
+    bool is_right;
+    float channels[CHANNELS_COUNT];
+} side_history;
+
+#define MAX_HISTORY_ITEMS 32
+side_history history[MAX_HISTORY_ITEMS];
+int history_index = 0;
+
+bool is_right_often()
+{
+    int right = 0;
+    int left = 0;
+
+    for(int i = 0; i < MAX_HISTORY_ITEMS; i++)
+    {
+        if(history[i].is_right) right++;
+        else left++;
+    }
+
+    return right > left;
+}
+
+void add_to_history(bool is_right, float channels[CHANNELS_COUNT])
+{
+    history[history_index].is_right = is_right;
+    history[history_index].channels[0] = channels[0];
+    history[history_index].channels[1] = channels[1];
+    history_index++;
+    if(history_index >= MAX_HISTORY_ITEMS) history_index = 0;
+}
+
 struct data {
     struct pw_main_loop *loop;
     struct pw_stream *stream;
@@ -63,14 +99,27 @@ void draw_direction_bar()
     XSetForeground(display, gc, _RGB(255, 0, 110));
     XFillRectangle(display, window, gc, (window_width / 2) - 4, window_height - 42, 8, 42);
 
-    // TODO: Draw track by different color
-    // Draw track
-    // XSetForeground(display, gc, WhitePixel(display, screenId));
-    // XFillRectangle(display, window, gc, 0, window_height - DIRECTION_BAR_HEIGHT, display_width, DIRECTION_BAR_HEIGHT);
-
     // Draw selector
     XSetForeground(display, gc, WhitePixel(display, screenId));
-    XFillRectangle(display, window, gc, xx - (DIRECTION_BAR_WIDTH / 2), window_height - DIRECTION_BAR_HEIGHT, DIRECTION_BAR_WIDTH, (DIRECTION_BAR_HEIGHT / 2));
+    XFillRectangle(display, window, gc, xx - (DIRECTION_BAR_WIDTH / 2), window_height - (DIRECTION_BAR_HEIGHT*2), DIRECTION_BAR_WIDTH, (DIRECTION_BAR_HEIGHT / 2));
+
+    // Draw second selector (with is_right_often prediction)
+
+    for(int i = 0; i < MAX_HISTORY_ITEMS; i++) {
+        side_history hist = history[i];
+        if(hist.is_right != is_right_often()) continue;
+
+        float local = -hist.channels[0];
+        if(is_right_often()) local = hist.channels[1];
+
+        float target2 = local;
+        float portion2 = target2 * DIRECTON_BAR_VALUE_SCALE;
+        float x2 = portion2 * (float)window_width;
+        float xx2 = ((float) window_width / 2) + x2;
+
+        XSetForeground(display, gc, _RGB(0, 255, 0));
+        XFillRectangle(display, window, gc, xx2 - (DIRECTION_BAR_WIDTH / 2), window_height - DIRECTION_BAR_HEIGHT, DIRECTION_BAR_WIDTH, (DIRECTION_BAR_HEIGHT / 2));
+    }
 }
 
 /* our data processing function is in general:
@@ -104,9 +153,6 @@ static void on_process(void *userdata)
 
         direction_value = 0.0;
 
-        #define CHANNELS_COUNT 2
-        float channels[CHANNELS_COUNT];
-
         /* move cursor up */
         if (data->move)
                 fprintf(stdout, "%c[%dA", 0x1b, n_channels + 1);
@@ -130,6 +176,8 @@ static void on_process(void *userdata)
         } else { // LEFT>
             direction_value = -channels[0];
         }
+
+        add_to_history(channels[0] < channels[1], channels);
 
         data->move = true;
         fflush(stdout);
