@@ -4,11 +4,11 @@
 #include <string.h>
 #include <stdio.h>
 
-#include <X11/Xlib.h>
-#include <X11/Xutil.h>
-#include <X11/extensions/Xcomposite.h>
-#include <X11/extensions/Xfixes.h>
-#include <X11/extensions/shape.h>
+// #include <X11/Xlib.h>
+// #include <X11/Xutil.h>
+// #include <X11/extensions/Xcomposite.h>
+// #include <X11/extensions/Xfixes.h>
+// #include <X11/extensions/shape.h>
 
 #include <spa/param/audio/format-utils.h>
 #include <pipewire/pipewire.h>
@@ -20,15 +20,15 @@
 float direction_value = 0.2;
 float prev_direction_value = 0.2;
 
-Display* display;
-int screenId; // todo rename
-Window window;
-GC gc;
+// Display* display;
+// int screenId; // todo rename
+// Window window;
+// GC gc;
 int display_width, display_height;
 int window_width, window_height;
 
 bool is_running = false;
-XEvent x11_event;
+// XEvent x11_event;
 
 
 #define CHANNELS_COUNT 2
@@ -93,33 +93,33 @@ void draw_direction_bar()
 
     prev_direction_value = direction_value;
 
-    XClearWindow(display, window);
+    // XClearWindow(display, window);
 
-    // Draw center
-    XSetForeground(display, gc, _RGB(255, 0, 110));
-    XFillRectangle(display, window, gc, (window_width / 2) - 4, window_height - 42, 8, 42);
+    // // Draw center
+    // XSetForeground(display, gc, _RGB(255, 0, 110));
+    // XFillRectangle(display, window, gc, (window_width / 2) - 4, window_height - 42, 8, 42);
 
-    // Draw selector
-    XSetForeground(display, gc, WhitePixel(display, screenId));
-    XFillRectangle(display, window, gc, xx - (DIRECTION_BAR_WIDTH / 2), window_height - (DIRECTION_BAR_HEIGHT*2), DIRECTION_BAR_WIDTH, (DIRECTION_BAR_HEIGHT / 2));
+    // // Draw selector
+    // XSetForeground(display, gc, WhitePixel(display, screenId));
+    // XFillRectangle(display, window, gc, xx - (DIRECTION_BAR_WIDTH / 2), window_height - (DIRECTION_BAR_HEIGHT*2), DIRECTION_BAR_WIDTH, (DIRECTION_BAR_HEIGHT / 2));
 
-    // Draw second selector (with is_right_often prediction)
+    // // Draw second selector (with is_right_often prediction)
 
-    for(int i = 0; i < MAX_HISTORY_ITEMS; i++) {
-        side_history hist = history[i];
-        if(hist.is_right != is_right_often()) continue;
+    // for(int i = 0; i < MAX_HISTORY_ITEMS; i++) {
+    //     side_history hist = history[i];
+    //     if(hist.is_right != is_right_often()) continue;
 
-        float local = -hist.channels[0];
-        if(is_right_often()) local = hist.channels[1];
+    //     float local = -hist.channels[0];
+    //     if(is_right_often()) local = hist.channels[1];
 
-        float target2 = local;
-        float portion2 = target2 * DIRECTON_BAR_VALUE_SCALE;
-        float x2 = portion2 * (float)window_width;
-        float xx2 = ((float) window_width / 2) + x2;
+    //     float target2 = local;
+    //     float portion2 = target2 * DIRECTON_BAR_VALUE_SCALE;
+    //     float x2 = portion2 * (float)window_width;
+    //     float xx2 = ((float) window_width / 2) + x2;
 
-        XSetForeground(display, gc, _RGB(0, 255, 0));
-        XFillRectangle(display, window, gc, xx2 - (DIRECTION_BAR_WIDTH / 2), window_height - DIRECTION_BAR_HEIGHT, DIRECTION_BAR_WIDTH, (DIRECTION_BAR_HEIGHT / 2));
-    }
+    //     XSetForeground(display, gc, _RGB(0, 255, 0));
+    //     XFillRectangle(display, window, gc, xx2 - (DIRECTION_BAR_WIDTH / 2), window_height - DIRECTION_BAR_HEIGHT, DIRECTION_BAR_WIDTH, (DIRECTION_BAR_HEIGHT / 2));
+    // }
 }
 
 /* our data processing function is in general:
@@ -184,8 +184,8 @@ static void on_process(void *userdata)
 
         pw_stream_queue_buffer(data->stream, b);
 
-        while(XPending(display))
-            XNextEvent(display, &x11_event);
+        // while(XPending(display))
+        //     XNextEvent(display, &x11_event);
         fprintf(stdout, "direction_value is %f\n", direction_value);
         fflush(stdout);
         draw_direction_bar();
@@ -230,55 +230,55 @@ static void do_quit(void *userdata, int signal_number)
         pw_main_loop_quit(data->loop);
 }
 
-void allow_x11_window_input_passthrough(Window w, Display *d)
+// void allow_x11_window_input_passthrough(Window w, Display *d)
+// {
+//     XserverRegion region = XFixesCreateRegion(d, NULL, 0);
+
+//     XFixesSetWindowShapeRegion(d, w, ShapeBounding, 0, 0, 0);
+//     XFixesSetWindowShapeRegion(d, w, ShapeInput, 0, 0, region);
+
+//     XFixesDestroyRegion(d, region);
+// }
+
+void create_window()
 {
-    XserverRegion region = XFixesCreateRegion(d, NULL, 0);
+    // display = XOpenDisplay(NULL);
 
-    XFixesSetWindowShapeRegion(d, w, ShapeBounding, 0, 0, 0);
-    XFixesSetWindowShapeRegion(d, w, ShapeInput, 0, 0, region);
+    // XVisualInfo vinfo;
+    // XMatchVisualInfo(display, DefaultScreen(display), 32, TrueColor, &vinfo);
 
-    XFixesDestroyRegion(d, region);
-}
+    // XSetWindowAttributes attr;
+    // attr.colormap = XCreateColormap(display, DefaultRootWindow(display), vinfo.visual, AllocNone);
+    // attr.border_pixel = 0;
+    // attr.background_pixel = 0;
 
-void create_x11_window()
-{
-    display = XOpenDisplay(NULL);
+    // // TODO: Replace with full screen values
+    // window_width = 900;
+    // window_height = 80;
 
-    XVisualInfo vinfo;
-    XMatchVisualInfo(display, DefaultScreen(display), 32, TrueColor, &vinfo);
+    // window = XCreateWindow(display, DefaultRootWindow(display), 0, 0, window_width, window_height, 0, vinfo.depth, InputOutput, vinfo.visual, CWColormap | CWBorderPixel | CWBackPixel, &attr);
+    // XSelectInput(display, window, StructureNotifyMask);
+    // gc = XCreateGC(display, window, 0, 0);
 
-    XSetWindowAttributes attr;
-    attr.colormap = XCreateColormap(display, DefaultRootWindow(display), vinfo.visual, AllocNone);
-    attr.border_pixel = 0;
-    attr.background_pixel = 0;
+    // int s = DefaultScreen(display);
+    // screenId = s;
+    // display_height = DisplayHeight(display, s);
+    // display_width = DisplayWidth(display, s);
 
-    // TODO: Replace with full screen values
-    window_width = 900;
-    window_height = 80;
-
-    window = XCreateWindow(display, DefaultRootWindow(display), 0, 0, window_width, window_height, 0, vinfo.depth, InputOutput, vinfo.visual, CWColormap | CWBorderPixel | CWBackPixel, &attr);
-    XSelectInput(display, window, StructureNotifyMask);
-    gc = XCreateGC(display, window, 0, 0);
-
-    int s = DefaultScreen(display);
-    screenId = s;
-    display_height = DisplayHeight(display, s);
-    display_width = DisplayWidth(display, s);
-
-    Window root = RootWindow(display, s);
-    allow_x11_window_input_passthrough(window, display);
+    // Window root = RootWindow(display, s);
+    // allow_x11_window_input_passthrough(window, display);
     
-    Atom wm_delete_window = XInternAtom(display, "WM_DELETE_WINDOW", 0);
-    XSetWMProtocols(display, window, &wm_delete_window, 1);
+    // Atom wm_delete_window = XInternAtom(display, "WM_DELETE_WINDOW", 0);
+    // XSetWMProtocols(display, window, &wm_delete_window, 1);
 
-    XMapWindow(display, window);
+    // XMapWindow(display, window);
 
     is_running = true;
 }
 
 int main(int argc, char *argv[]) 
 {
-    create_x11_window();
+    create_window();
 
         struct data data = { 0, };
         const struct spa_pod *params[1];
