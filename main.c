@@ -235,7 +235,7 @@ static void do_quit(void *userdata, int signal_number)
 
 bool create_window()
 {
-    if(SDL_Init(SDL_INIT_VIDEO | SDL_INIT_EVENTS) < 0)
+    if(SDL_Init(SDL_INIT_VIDEO | SDL_INIT_EVENTS) != 0)
     {
         printf("Failed to initialize the SDL2 library: %s!\n", SDL_GetError());
         return false;
