@@ -3,15 +3,13 @@
 #include <signal.h>
 #include <string.h>
 #include <stdio.h>
-
-// #include <X11/Xlib.h>
-// #include <X11/Xutil.h>
-// #include <X11/extensions/Xcomposite.h>
-// #include <X11/extensions/Xfixes.h>
-// #include <X11/extensions/shape.h>
+#include <stdbool.h>
 
 #include <spa/param/audio/format-utils.h>
 #include <pipewire/pipewire.h>
+
+#include <SDL3/SDL.h>
+#include <SDL3/SDL_main.h>
 
 #define DIRECTION_BAR_WIDTH 16
 #define DIRECTION_BAR_HEIGHT 16
@@ -20,16 +18,11 @@
 float direction_value = 0.2;
 float prev_direction_value = 0.2;
 
-// Display* display;
-// int screenId; // todo rename
-// Window window;
-// GC gc;
+SDL_Window *window;
 int display_width, display_height;
 int window_width, window_height;
 
 bool is_running = false;
-// XEvent x11_event;
-
 
 #define CHANNELS_COUNT 2
 float channels[CHANNELS_COUNT];
@@ -240,45 +233,41 @@ static void do_quit(void *userdata, int signal_number)
 //     XFixesDestroyRegion(d, region);
 // }
 
-void create_window()
+bool create_window()
 {
-    // display = XOpenDisplay(NULL);
+    if(SDL_Init(SDL_INIT_VIDEO | SDL_INIT_EVENTS) < 0)
+    {
+        printf("Failed to initialize the SDL2 library: %s!\n", SDL_GetError());
+        return false;
+    }
 
-    // XVisualInfo vinfo;
-    // XMatchVisualInfo(display, DefaultScreen(display), 32, TrueColor, &vinfo);
+    window_width = 600;
+    window_height = 40;
 
-    // XSetWindowAttributes attr;
-    // attr.colormap = XCreateColormap(display, DefaultRootWindow(display), vinfo.visual, AllocNone);
-    // attr.border_pixel = 0;
-    // attr.background_pixel = 0;
+    window = SDL_CreateWindow("sndchprev",
+                window_width, window_height, 
+                SDL_WINDOW_BORDERLESS 
+                    | SDL_WINDOW_MAXIMIZED 
+                    | SDL_WINDOW_ALWAYS_ON_TOP 
+                    | SDL_WINDOW_TRANSPARENT 
+                    | SDL_WINDOW_NOT_FOCUSABLE  
+            );
 
-    // // TODO: Replace with full screen values
-    // window_width = 900;
-    // window_height = 80;
-
-    // window = XCreateWindow(display, DefaultRootWindow(display), 0, 0, window_width, window_height, 0, vinfo.depth, InputOutput, vinfo.visual, CWColormap | CWBorderPixel | CWBackPixel, &attr);
-    // XSelectInput(display, window, StructureNotifyMask);
-    // gc = XCreateGC(display, window, 0, 0);
-
-    // int s = DefaultScreen(display);
-    // screenId = s;
-    // display_height = DisplayHeight(display, s);
-    // display_width = DisplayWidth(display, s);
-
-    // Window root = RootWindow(display, s);
-    // allow_x11_window_input_passthrough(window, display);
-    
-    // Atom wm_delete_window = XInternAtom(display, "WM_DELETE_WINDOW", 0);
-    // XSetWMProtocols(display, window, &wm_delete_window, 1);
-
-    // XMapWindow(display, window);
+    if(!window)
+    {
+        puts("Failed to create window\n");
+        return false;
+    }
 
     is_running = true;
 }
 
 int main(int argc, char *argv[]) 
 {
-    create_window();
+    if(!create_window()) {
+        SDL_Quit();
+        return -1;
+    }
 
         struct data data = { 0, };
         const struct spa_pod *params[1];
